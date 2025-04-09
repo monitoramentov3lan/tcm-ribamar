@@ -1,0 +1,817 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Status de Comunicação da Frota - TCM-RIBAMAR</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f7fa;
+            color: #333;
+            line-height: 1.6;
+        }
+        
+        h2 {
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        .status-summary {
+            background-color: #fff;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            margin-bottom: 20px;
+            text-align: center;
+            font-size: 1.1em;
+        }
+        
+        .online {
+            color: #27ae60;
+            font-weight: bold;
+        }
+        
+        .offline {
+            color: #e74c3c;
+            font-weight: bold;
+        }
+        
+        .erro {
+            color: #f39c12;
+            font-weight: bold;
+        }
+        
+        .search-container {
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .search-box {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        
+        #search {
+            padding: 10px 15px;
+            width: 300px;
+            border-radius: 6px;
+            border: 1px solid #ddd;
+            font-size: 16px;
+            transition: border 0.3s;
+        }
+        
+        #search:focus {
+            outline: none;
+            border-color: #3498db;
+            box-shadow: 0 0 0 2px rgba(52,152,219,0.2);
+        }
+        
+        #search-btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            background-color: #3498db;
+            color: white;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+        
+        #search-btn:hover {
+            background-color: #2980b9;
+        }
+        
+        .filter-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .filter-buttons button {
+            padding: 8px 15px;
+            border: none;
+            border-radius: 6px;
+            background-color: #3498db;
+            color: white;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+        
+        .filter-buttons button:hover {
+            background-color: #2980b9;
+        }
+        
+        .filter-buttons button.active {
+            background-color: #2c3e50;
+        }
+        
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+        
+        .vehicle {
+            background-color: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            cursor: pointer;
+            transition: all 0.3s;
+            border-left: 5px solid;
+        }
+        
+        .vehicle:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        .vehicle.online {
+            border-left-color: #27ae60;
+        }
+        
+        .vehicle.offline {
+            border-left-color: #e74c3c;
+        }
+        
+        .vehicle.erro {
+            border-left-color: #f39c12;
+        }
+        
+        .vehicle-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        
+        .vehicle-prefix {
+            font-weight: bold;
+            font-size: 18px;
+        }
+        
+        .vehicle-status {
+            font-size: 12px;
+            padding: 3px 8px;
+            border-radius: 12px;
+            text-transform: uppercase;
+        }
+        
+        .vehicle-status.online {
+            background-color: rgba(39, 174, 96, 0.1);
+            color: #27ae60;
+        }
+        
+        .vehicle-status.offline {
+            background-color: rgba(231, 76, 60, 0.1);
+            color: #e74c3c;
+        }
+        
+        .vehicle-status.erro {
+            background-color: rgba(243, 156, 18, 0.1);
+            color: #f39c12;
+        }
+        
+        .timestamp {
+            display: block;
+            font-size: 13px;
+            color: #7f8c8d;
+        }
+        
+        /* Modal styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.7);
+            overflow: auto;
+        }
+        
+        .modal-content {
+            background-color: #fefefe;
+            margin: 5% auto;
+            padding: 25px;
+            border-radius: 10px;
+            width: 85%;
+            max-width: 800px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+            animation: modalopen 0.3s;
+        }
+        
+        @keyframes modalopen {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .close {
+            color: #aaa;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: color 0.3s;
+        }
+        
+        .close:hover {
+            color: #333;
+        }
+        
+        .vehicle-details {
+            margin-bottom: 20px;
+        }
+        
+        .vehicle-details div {
+            margin-bottom: 10px;
+            display: flex;
+        }
+        
+        .vehicle-details strong {
+            min-width: 120px;
+            display: inline-block;
+            color: #7f8c8d;
+        }
+        
+        .comunicacoes-list {
+            max-height: 400px;
+            overflow-y: auto;
+            border: 1px solid #eee;
+            border-radius: 8px;
+            padding: 10px;
+            background-color: #f9f9f9;
+        }
+        
+        .comunicacao-item {
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+            transition: background-color 0.2s;
+        }
+        
+        .comunicacao-item:hover {
+            background-color: #f0f0f0;
+        }
+        
+        .comunicacao-item:last-child {
+            border-bottom: none;
+        }
+        
+        .periodo-emoji {
+            margin-right: 8px;
+        }
+        
+        .no-results {
+            text-align: center;
+            padding: 20px;
+            color: #7f8c8d;
+            font-style: italic;
+            display: none;
+        }
+        
+        /* Dark mode styles */
+        .dark-mode {
+            background-color: #1a1a1a;
+            color: #e0e0e0;
+        }
+        
+        .dark-mode h2 {
+            color: #f5f5f5;
+            border-bottom-color: #444;
+        }
+        
+        .dark-mode .status-summary,
+        .dark-mode .vehicle,
+        .dark-mode .modal-content {
+            background-color: #2d2d2d;
+            color: #e0e0e0;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+        }
+        
+        .dark-mode .modal-header,
+        .dark-mode .comunicacoes-list {
+            border-color: #444;
+        }
+        
+        .dark-mode .vehicle-details strong {
+            color: #aaa;
+        }
+        
+        .dark-mode .comunicacoes-list {
+            background-color: #252525;
+            border-color: #444;
+        }
+        
+        .dark-mode .comunicacao-item {
+            border-bottom-color: #444;
+        }
+        
+        .dark-mode .comunicacao-item:hover {
+            background-color: #333;
+        }
+        
+        .dark-mode .close:hover {
+            color: white;
+        }
+        
+        .dark-mode #search {
+            background-color: #333;
+            color: #fff;
+            border-color: #444;
+        }
+        
+        .dark-mode #search:focus {
+            border-color: #3498db;
+            box-shadow: 0 0 0 2px rgba(52,152,219,0.3);
+        }
+        
+        @media (max-width: 768px) {
+            .grid-container {
+                grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            }
+            
+            .modal-content {
+                width: 95%;
+                margin: 10% auto;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h2>Status de Comunicação da Frota - TCM-RIBAMAR em 09/04/2025</h2>
+    <div class="status-summary">
+        <span class="online" id="active-count">Online: 29</span> | 
+        <span class="offline" id="inactive-count">Offline: 4</span>
+    </div>
+    <div class="search-container">
+        <div class="search-box">
+            <input type="text" id="search" placeholder="Buscar veículo..." onkeyup="searchVehicle()">
+            <button id="search-btn" onclick="searchVehicle()">Buscar</button>
+        </div>
+    </div>
+    <div class="filter-buttons">
+        <button onclick="filterVehicles('all')" class="active">Todos</button>
+        <button onclick="filterVehicles('online')">Ativos</button>
+        <button onclick="filterVehicles('offline')">Inativos</button>
+        <button onclick="toggleDarkMode()">Modo Escuro</button>
+    </div>
+    <div class="grid-container" id="vehicle-container">
+        
+                <div class="vehicle online" data-veiculo="37511" onclick="showVehicleDetails('37511')">
+                    <div class="vehicle-header">
+                        <span class="vehicle-prefix">37511</span>
+                        <span class="vehicle-status online">ONLINE</span>
+                    </div>
+                    <span class="timestamp">Última: 🌙 09/04/2025 04:21</span>
+                </div>
+                
+                <div class="vehicle online" data-veiculo="39007" onclick="showVehicleDetails('39007')">
+                    <div class="vehicle-header">
+                        <span class="vehicle-prefix">39007</span>
+                        <span class="vehicle-status online">ONLINE</span>
+                    </div>
+                    <span class="timestamp">Última: 🌙 09/04/2025 03:47</span>
+                </div>
+                
+                <div class="vehicle online" data-veiculo="39026" onclick="showVehicleDetails('39026')">
+                    <div class="vehicle-header">
+                        <span class="vehicle-prefix">39026</span>
+                        <span class="vehicle-status online">ONLINE</span>
+                    </div>
+                    <span class="timestamp">Última: 🌙 09/04/2025 04:19</span>
+                </div>
+                
+                <div class="vehicle online" data-veiculo="39050" onclick="showVehicleDetails('39050')">
+                    <div class="vehicle-header">
+                        <span class="vehicle-prefix">39050</span>
+                        <span class="vehicle-status online">ONLINE</span>
+                    </div>
+                    <span class="timestamp">Última: 🌙 09/04/2025 04:46</span>
+                </div>
+                
+                <div class="vehicle online" data-veiculo="39066" onclick="showVehicleDetails('39066')">
+                    <div class="vehicle-header">
+                        <span class="vehicle-prefix">39066</span>
+                        <span class="vehicle-status online">ONLINE</span>
+                    </div>
+                    <span class="timestamp">Última: 🌙 09/04/2025 05:14</span>
+                </div>
+                
+                <div class="vehicle online" data-veiculo="39070" onclick="showVehicleDetails('39070')">
+                    <div class="vehicle-header">
+                        <span class="vehicle-prefix">39070</span>
+                        <span class="vehicle-status online">ONLINE</span>
+                    </div>
+                    <span class="timestamp">Última: 🌙 09/04/2025 04:09</span>
+                </div>
+                
+                <div class="vehicle online" data-veiculo="39074" onclick="showVehicleDetails('39074')">
+                    <div class="vehicle-header">
+                        <span class="vehicle-prefix">39074</span>
+                        <span class="vehicle-status online">ONLINE</span>
+                    </div>
+                    <span class="timestamp">Última: 🌙 09/04/2025 04:47</span>
+                </div>
+                
+                <div class="vehicle online" data-veiculo="39075" onclick="showVehicleDetails('39075')">
+                    <div class="vehicle-header">
+                        <span class="vehicle-prefix">39075</span>
+                        <span class="vehicle-status online">ONLINE</span>
+                    </div>
+                    <span class="timestamp">Última: 🌙 09/04/2025 04:32</span>
+                </div>
+                
+                <div class="vehicle online" data-veiculo="39085" onclick="showVehicleDetails('39085')">
+                    <div class="vehicle-header">
+                        <span class="vehicle-prefix">39085</span>
+                        <span class="vehicle-status online">ONLINE</span>
+                    </div>
+                    <span class="timestamp">Última: 🌙 09/04/2025 04:21</span>
+                </div>
+                
+                <div class="vehicle online" data-veiculo="39093" onclick="showVehicleDetails('39093')">
+                    <div class="vehicle-header">
+                        <span class="vehicle-prefix">39093</span>
+                        <span class="vehicle-status online">ONLINE</span>
+                    </div>
+                    <span class="timestamp">Última: 🌙 09/04/2025 04:36</span>
+                </div>
+                
+                <div class="vehicle online" data-veiculo="39096" onclick="showVehicleDetails('39096')">
+                    <div class="vehicle-header">
+                        <span class="vehicle-prefix">39096</span>
+                        <span class="vehicle-status online">ONLINE</span>
+                    </div>
+                    <span class="timestamp">Última: 🌙 09/04/2025 05:00</span>
+                </div>
+                
+                <div class="vehicle online" data-veiculo="39097" onclick="showVehicleDetails('39097')">
+                    <div class="vehicle-header">
+                        <span class="vehicle-prefix">39097</span>
+                        <span class="vehicle-status online">ONLINE</span>
+                    </div>
+                    <span class="timestamp">Última: 🌙 09/04/2025 04:17</span>
+                </div>
+                
+                <div class="vehicle online" data-veiculo="39100" onclick="showVehicleDetails('39100')">
+                    <div class="vehicle-header">
+                        <span class="vehicle-prefix">39100</span>
+                        <span class="vehicle-status online">ONLINE</span>
+                    </div>
+                    <span class="timestamp">Última: 🌙 09/04/2025 04:59</span>
+                </div>
+                
+                <div class="vehicle online" data-veiculo="39119" onclick="showVehicleDetails('39119')">
+                    <div class="vehicle-header">
+                        <span class="vehicle-prefix">39119</span>
+                        <span class="vehicle-status online">ONLINE</span>
+                    </div>
+                    <span class="timestamp">Última: 🌙 09/04/2025 05:42</span>
+                </div>
+                
+                <div class="vehicle online" data-veiculo="39129" onclick="showVehicleDetails('39129')">
+                    <div class="vehicle-header">
+                        <span class="vehicle-prefix">39129</span>
+                        <span class="vehicle-status online">ONLINE</span>
+                    </div>
+                    <span class="timestamp">Última: 🌙 09/04/2025 05:21</span>
+                </div>
+                
+                <div class="vehicle online" data-veiculo="39130" onclick="showVehicleDetails('39130')">
+                    <div class="vehicle-header">
+                        <span class="vehicle-prefix">39130</span>
+                        <span class="vehicle-status online">ONLINE</span>
+                    </div>
+                    <span class="timestamp">Última: 🌙 09/04/2025 05:54</span>
+                </div>
+                
+                <div class="vehicle online" data-veiculo="39135" onclick="showVehicleDetails('39135')">
+                    <div class="vehicle-header">
+                        <span class="vehicle-prefix">39135</span>
+                        <span class="vehicle-status online">ONLINE</span>
+                    </div>
+                    <span class="timestamp">Última: 🌙 09/04/2025 04:34</span>
+                </div>
+                
+                <div class="vehicle online" data-veiculo="39136" onclick="showVehicleDetails('39136')">
+                    <div class="vehicle-header">
+                        <span class="vehicle-prefix">39136</span>
+                        <span class="vehicle-status online">ONLINE</span>
+                    </div>
+                    <span class="timestamp">Última: ☀️ 09/04/2025 06:07</span>
+                </div>
+                
+                <div class="vehicle online" data-veiculo="39141" onclick="showVehicleDetails('39141')">
+                    <div class="vehicle-header">
+                        <span class="vehicle-prefix">39141</span>
+                        <span class="vehicle-status online">ONLINE</span>
+                    </div>
+                    <span class="timestamp">Última: 🌙 09/04/2025 04:46</span>
+                </div>
+                
+                <div class="vehicle online" data-veiculo="39142" onclick="showVehicleDetails('39142')">
+                    <div class="vehicle-header">
+                        <span class="vehicle-prefix">39142</span>
+                        <span class="vehicle-status online">ONLINE</span>
+                    </div>
+                    <span class="timestamp">Última: 🌙 09/04/2025 04:58</span>
+                </div>
+                
+                <div class="vehicle online" data-veiculo="39502" onclick="showVehicleDetails('39502')">
+                    <div class="vehicle-header">
+                        <span class="vehicle-prefix">39502</span>
+                        <span class="vehicle-status online">ONLINE</span>
+                    </div>
+                    <span class="timestamp">Última: 🌙 09/04/2025 05:05</span>
+                </div>
+                
+                <div class="vehicle offline" data-veiculo="39505" onclick="showVehicleDetails('39505')">
+                    <div class="vehicle-header">
+                        <span class="vehicle-prefix">39505</span>
+                        <span class="vehicle-status offline">OFFLINE</span>
+                    </div>
+                    <span class="timestamp">Última: 🌙 08/04/2025 00:07</span>
+                </div>
+                
+                <div class="vehicle online" data-veiculo="39509" onclick="showVehicleDetails('39509')">
+                    <div class="vehicle-header">
+                        <span class="vehicle-prefix">39509</span>
+                        <span class="vehicle-status online">ONLINE</span>
+                    </div>
+                    <span class="timestamp">Última: 🌙 09/04/2025 05:54</span>
+                </div>
+                
+                <div class="vehicle online" data-veiculo="39512" onclick="showVehicleDetails('39512')">
+                    <div class="vehicle-header">
+                        <span class="vehicle-prefix">39512</span>
+                        <span class="vehicle-status online">ONLINE</span>
+                    </div>
+                    <span class="timestamp">Última: 🌙 09/04/2025 04:15</span>
+                </div>
+                
+                <div class="vehicle online" data-veiculo="39516" onclick="showVehicleDetails('39516')">
+                    <div class="vehicle-header">
+                        <span class="vehicle-prefix">39516</span>
+                        <span class="vehicle-status online">ONLINE</span>
+                    </div>
+                    <span class="timestamp">Última: 🌙 09/04/2025 04:58</span>
+                </div>
+                
+                <div class="vehicle online" data-veiculo="39531" onclick="showVehicleDetails('39531')">
+                    <div class="vehicle-header">
+                        <span class="vehicle-prefix">39531</span>
+                        <span class="vehicle-status online">ONLINE</span>
+                    </div>
+                    <span class="timestamp">Última: 🌙 09/04/2025 04:50</span>
+                </div>
+                
+                <div class="vehicle offline" data-veiculo="39532" onclick="showVehicleDetails('39532')">
+                    <div class="vehicle-header">
+                        <span class="vehicle-prefix">39532</span>
+                        <span class="vehicle-status offline">OFFLINE</span>
+                    </div>
+                    <span class="timestamp">Última: 🌙 08/04/2025 04:10</span>
+                </div>
+                
+                <div class="vehicle online" data-veiculo="39535" onclick="showVehicleDetails('39535')">
+                    <div class="vehicle-header">
+                        <span class="vehicle-prefix">39535</span>
+                        <span class="vehicle-status online">ONLINE</span>
+                    </div>
+                    <span class="timestamp">Última: 🌙 09/04/2025 04:52</span>
+                </div>
+                
+                <div class="vehicle online" data-veiculo="39536" onclick="showVehicleDetails('39536')">
+                    <div class="vehicle-header">
+                        <span class="vehicle-prefix">39536</span>
+                        <span class="vehicle-status online">ONLINE</span>
+                    </div>
+                    <span class="timestamp">Última: 🌙 09/04/2025 04:45</span>
+                </div>
+                
+                <div class="vehicle online" data-veiculo="39539" onclick="showVehicleDetails('39539')">
+                    <div class="vehicle-header">
+                        <span class="vehicle-prefix">39539</span>
+                        <span class="vehicle-status online">ONLINE</span>
+                    </div>
+                    <span class="timestamp">Última: 🌙 09/04/2025 05:39</span>
+                </div>
+                
+                <div class="vehicle online" data-veiculo="39540" onclick="showVehicleDetails('39540')">
+                    <div class="vehicle-header">
+                        <span class="vehicle-prefix">39540</span>
+                        <span class="vehicle-status online">ONLINE</span>
+                    </div>
+                    <span class="timestamp">Última: ☀️ 09/04/2025 06:42</span>
+                </div>
+                
+                <div class="vehicle offline" data-veiculo="39542" onclick="showVehicleDetails('39542')">
+                    <div class="vehicle-header">
+                        <span class="vehicle-prefix">39542</span>
+                        <span class="vehicle-status offline">OFFLINE</span>
+                    </div>
+                    <span class="timestamp">Última: 🌙 08/04/2025 04:25</span>
+                </div>
+                
+                <div class="vehicle offline" data-veiculo="400147" onclick="showVehicleDetails('400147')">
+                    <div class="vehicle-header">
+                        <span class="vehicle-prefix">400147</span>
+                        <span class="vehicle-status offline">OFFLINE</span>
+                    </div>
+                    <span class="timestamp">Última: 🌆 08/04/2025 21:52</span>
+                </div>
+                
+    </div>
+    <div class="no-results" id="no-results">
+        Nenhum veículo encontrado com o termo pesquisado.
+    </div>
+
+    <!-- Modal para detalhes do veículo -->
+    <div id="vehicleModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalTitle">Detalhes do Veículo</h2>
+                <span class="close">&times;</span>
+            </div>
+            <div class="vehicle-details" id="vehicleDetails">
+                <!-- Detalhes serão preenchidos por JavaScript -->
+            </div>
+            <h3>Histórico de Comunicações</h3>
+            <div class="comunicacoes-list" id="comunicacoesList">
+                <!-- Lista de comunicações será preenchida por JavaScript -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Dados dos veículos
+        const veiculoData = {"37511": {"serie": "67722.0", "versao": "91.11", "eod": "169.0"}, "39007": {"serie": "66837.0", "versao": "91.11", "eod": "169.0"}, "39026": {"serie": "67477.0", "versao": "91.11", "eod": "169.0"}, "39050": {"serie": "66940.0", "versao": "91.11", "eod": "169.0"}, "39066": {"serie": "66932.0", "versao": "91.11", "eod": "169.0"}, "39070": {"serie": "66997.0", "versao": "91.11", "eod": "169.0"}, "39074": {"serie": "66815.0", "versao": "91.11", "eod": "169.0"}, "39075": {"serie": "67410.0", "versao": "91.11", "eod": "169.0"}, "39085": {"serie": "66941.0", "versao": "91.11", "eod": "169.0"}, "39093": {"serie": "66894.0", "versao": "91.11", "eod": "169.0"}, "39096": {"serie": "67577.0", "versao": "91.11", "eod": "169.0"}, "39097": {"serie": "67448.0", "versao": "91.11", "eod": "169.0"}, "39100": {"serie": "67988.0", "versao": "91.11", "eod": "169.0"}, "39119": {"serie": "67716.0", "versao": "91.11", "eod": "169.0"}, "39129": {"serie": "67364.0", "versao": "91.11", "eod": "169.0"}, "39130": {"serie": "67894.0", "versao": "91.11", "eod": "169.0"}, "39135": {"serie": "67196.0", "versao": "91.11", "eod": "169.0"}, "39136": {"serie": "67065.0", "versao": "91.11", "eod": "169.0"}, "39141": {"serie": "66714.0", "versao": "91.11", "eod": "169.0"}, "39142": {"serie": "67702.0", "versao": "91.11", "eod": "169.0"}, "39502": {"serie": "66550.0", "versao": "91.11", "eod": "169.0"}, "39505": {"serie": "66110.0", "versao": "91.11", "eod": "169.0"}, "39509": {"serie": "66193.0", "versao": "91.11", "eod": "169.0"}, "39512": {"serie": "66924.0", "versao": "91.11", "eod": "169.0"}, "39516": {"serie": "67814.0", "versao": "91.11", "eod": "169.0"}, "39531": {"serie": "68081.0", "versao": "91.11", "eod": "169.0"}, "39532": {"serie": "66840.0", "versao": "91.11", "eod": "169.0"}, "39535": {"serie": "66204.0", "versao": "91.11", "eod": "169.0"}, "39536": {"serie": "66234.0", "versao": "91.11", "eod": "169.0"}, "39539": {"serie": "67234.0", "versao": "91.11", "eod": "169.0"}, "39540": {"serie": "68261.0", "versao": "91.11", "eod": "169.0"}, "39542": {"serie": "66581.0", "versao": "91.11", "eod": "169.0"}, "400147": {"serie": "67623.0", "versao": "91.11", "eod": "169.0"}};
+        const comunicacoesData = {"37511": [{"dataHora": "09/04/2025 04:21:35", "tempoSegundos": "16.0"}, {"dataHora": "09/04/2025 03:51:02", "tempoSegundos": "17.0"}, {"dataHora": "09/04/2025 03:20:29", "tempoSegundos": "17.0"}, {"dataHora": "09/04/2025 02:48:55", "tempoSegundos": "16.0"}, {"dataHora": "09/04/2025 02:19:01", "tempoSegundos": "16.0"}, {"dataHora": "09/04/2025 01:47:39", "tempoSegundos": "17.0"}, {"dataHora": "09/04/2025 01:17:07", "tempoSegundos": "17.0"}, {"dataHora": "09/04/2025 00:47:39", "tempoSegundos": "17.0"}, {"dataHora": "09/04/2025 00:17:43", "tempoSegundos": "17.0"}, {"dataHora": "08/04/2025 23:46:31", "tempoSegundos": "17.0"}, {"dataHora": "08/04/2025 23:16:35", "tempoSegundos": "18.0"}, {"dataHora": "08/04/2025 22:46:00", "tempoSegundos": "18.0"}, {"dataHora": "08/04/2025 22:15:13", "tempoSegundos": "17.0"}, {"dataHora": "08/04/2025 21:45:17", "tempoSegundos": "18.0"}, {"dataHora": "08/04/2025 21:14:09", "tempoSegundos": "17.0"}, {"dataHora": "08/04/2025 20:43:05", "tempoSegundos": "17.0"}, {"dataHora": "08/04/2025 20:12:48", "tempoSegundos": "16.0"}, {"dataHora": "08/04/2025 19:42:54", "tempoSegundos": "17.0"}, {"dataHora": "08/04/2025 15:38:58", "tempoSegundos": "17.0"}, {"dataHora": "08/04/2025 15:08:24", "tempoSegundos": "16.0"}, {"dataHora": "08/04/2025 14:38:05", "tempoSegundos": "16.0"}, {"dataHora": "08/04/2025 14:08:10", "tempoSegundos": "16.0"}, {"dataHora": "08/04/2025 13:38:15", "tempoSegundos": "16.0"}, {"dataHora": "08/04/2025 13:07:42", "tempoSegundos": "16.0"}, {"dataHora": "08/04/2025 12:36:20", "tempoSegundos": "16.0"}, {"dataHora": "08/04/2025 12:07:01", "tempoSegundos": "17.0"}, {"dataHora": "08/04/2025 11:35:38", "tempoSegundos": "16.0"}, {"dataHora": "08/04/2025 11:05:43", "tempoSegundos": "16.0"}, {"dataHora": "08/04/2025 10:35:37", "tempoSegundos": "18.0"}, {"dataHora": "08/04/2025 04:49:17", "tempoSegundos": "17.0"}, {"dataHora": "08/04/2025 04:17:54", "tempoSegundos": "17.0"}, {"dataHora": "08/04/2025 03:48:47", "tempoSegundos": "17.0"}, {"dataHora": "08/04/2025 03:18:14", "tempoSegundos": "16.0"}, {"dataHora": "08/04/2025 02:47:41", "tempoSegundos": "17.0"}, {"dataHora": "08/04/2025 02:17:32", "tempoSegundos": "16.0"}, {"dataHora": "08/04/2025 01:46:32", "tempoSegundos": "16.0"}, {"dataHora": "08/04/2025 01:15:11", "tempoSegundos": "17.0"}, {"dataHora": "08/04/2025 00:44:54", "tempoSegundos": "17.0"}, {"dataHora": "08/04/2025 00:15:39", "tempoSegundos": "17.0"}], "39007": [{"dataHora": "09/04/2025 03:47:18", "tempoSegundos": "16.0"}, {"dataHora": "09/04/2025 03:16:45", "tempoSegundos": "17.0"}, {"dataHora": "09/04/2025 02:46:50", "tempoSegundos": "16.0"}, {"dataHora": "09/04/2025 02:16:18", "tempoSegundos": "16.0"}, {"dataHora": "09/04/2025 01:46:23", "tempoSegundos": "17.0"}, {"dataHora": "09/04/2025 01:16:27", "tempoSegundos": "16.0"}, {"dataHora": "09/04/2025 00:45:43", "tempoSegundos": "18.0"}, {"dataHora": "09/04/2025 00:14:52", "tempoSegundos": "19.0"}, {"dataHora": "08/04/2025 05:16:56", "tempoSegundos": "16.0"}, {"dataHora": "08/04/2025 04:46:23", "tempoSegundos": "17.0"}, {"dataHora": "08/04/2025 04:14:59", "tempoSegundos": "16.0"}, {"dataHora": "08/04/2025 03:45:53", "tempoSegundos": "16.0"}, {"dataHora": "08/04/2025 03:15:21", "tempoSegundos": "16.0"}, {"dataHora": "08/04/2025 02:44:48", "tempoSegundos": "16.0"}, {"dataHora": "08/04/2025 02:13:51", "tempoSegundos": "16.0"}, {"dataHora": "08/04/2025 01:43:56", "tempoSegundos": "16.0"}, {"dataHora": "08/04/2025 01:13:50", "tempoSegundos": "16.0"}, {"dataHora": "08/04/2025 00:43:44", "tempoSegundos": "18.0"}], "39026": [{"dataHora": "09/04/2025 04:19:30", "tempoSegundos": "16.0"}, {"dataHora": "09/04/2025 03:48:58", "tempoSegundos": "16.0"}, {"dataHora": "09/04/2025 03:17:36", "tempoSegundos": "16.0"}, {"dataHora": "09/04/2025 02:47:42", "tempoSegundos": "16.0"}, {"dataHora": "09/04/2025 02:17:10", "tempoSegundos": "16.0"}, {"dataHora": "09/04/2025 01:46:37", "tempoSegundos": "16.0"}, {"dataHora": "09/04/2025 01:17:19", "tempoSegundos": "17.0"}, {"dataHora": "09/04/2025 00:46:37", "tempoSegundos": "16.0"}, {"dataHora": "09/04/2025 00:16:41", "tempoSegundos": "16.0"}, {"dataHora": "08/04/2025 23:45:29", "tempoSegundos": "16.0"}, {"dataHora": "08/04/2025 23:15:34", "tempoSegundos": "17.0"}, {"dataHora": "08/04/2025 22:45:01", "tempoSegundos": "16.0"}, {"dataHora": "08/04/2025 22:14:42", "tempoSegundos": "16.0"}, {"dataHora": "08/04/2025 21:44:46", "tempoSegundos": "18.0"}, {"dataHora": "08/04/2025 21:13:38", "tempoSegundos": "16.0"}, {"dataHora": "08/04/2025 20:43:01", "tempoSegundos": "30.0"}, {"dataHora": "08/04/2025 04:22:22", "tempoSegundos": "17.0"}, {"dataHora": "08/04/2025 03:53:15", "tempoSegundos": "16.0"}, {"dataHora": "08/04/2025 03:22:42", "tempoSegundos": "16.0"}, {"dataHora": "08/04/2025 02:52:09", "tempoSegundos": "16.0"}, {"dataHora": "08/04/2025 02:22:01", "tempoSegundos": "16.0"}, {"dataHora": "08/04/2025 01:51:28", "tempoSegundos": "16.0"}, {"dataHora": "08/04/2025 01:20:07", "tempoSegundos": "16.0"}, {"dataHora": "08/04/2025 00:49:52", "tempoSegundos": "16.0"}, {"dataHora": "08/04/2025 00:19:57", "tempoSegundos": "21.0"}], "39050": [{"dataHora": "09/04/2025 04:46:21", "tempoSegundos": "16.0"}, {"dataHora": "09/04/2025 04:15:23", "tempoSegundos": "16.0"}, {"dataHora": "09/04/2025 03:44:50", "tempoSegundos": "17.0"}, {"dataHora": "09/04/2025 03:14:17", "tempoSegundos": "17.0"}, {"dataHora": "09/04/2025 02:44:22", "tempoSegundos": "16.0"}, {"dataHora": "09/04/2025 02:13:49", "tempoSegundos": "16.0"}, {"dataHora": "09/04/2025 01:43:55", "tempoSegundos": "16.0"}, {"dataHora": "09/04/2025 01:13:59", "tempoSegundos": "17.0"}, {"dataHora": "09/04/2025 00:43:16", "tempoSegundos": "16.0"}, {"dataHora": "09/04/2025 00:12:26", "tempoSegundos": "17.0"}, {"dataHora": "08/04/2025 23:42:07", "tempoSegundos": "19.0"}, {"dataHora": "08/04/2025 23:12:08", "tempoSegundos": "16.0"}, {"dataHora": "08/04/2025 22:41:36", "tempoSegundos": "16.0"}, {"dataHora": "08/04/2025 22:11:16", "tempoSegundos": "19.0"}, {"dataHora": "08/04/2025 21:41:19", "tempoSegundos": "37.0"}, {"dataHora": "08/04/2025 04:37:19", "tempoSegundos": "16.0"}, {"dataHora": "08/04/2025 04:06:46", "tempoSegundos": "16.0"}, {"dataHora": "08/04/2025 03:36:14", "tempoSegundos": "17.0"}, {"dataHora": "08/04/2025 03:05:42", "tempoSegundos": "16.0"}, {"dataHora": "08/04/2025 02:36:23", "tempoSegundos": "17.0"}, {"dataHora": "08/04/2025 02:05:00", "tempoSegundos": "17.0"}, {"dataHora": "08/04/2025 01:35:06", "tempoSegundos": "16.0"}, {"dataHora": "08/04/2025 01:05:00", "tempoSegundos": "16.0"}, {"dataHora": "08/04/2025 00:34:55", "tempoSegundos": "16.0"}, {"dataHora": "08/04/2025 00:04:24", "tempoSegundos": "17.0"}], "39066": [{"dataHora": "09/04/2025 05:14:33", "tempoSegundos": "16.0"}, {"dataHora": "09/04/2025 04:44:39", "tempoSegundos": "17.0"}, {"dataHora": "09/04/2025 04:14:06", "tempoSegundos": "16.0"}, {"dataHora": "09/04/2025 03:43:07", "tempoSegundos": "17.0"}, {"dataHora": "09/04/2025 03:12:33", "tempoSegundos": "17.0"}, {"dataHora": "09/04/2025 02:42:12", "tempoSegundos": "17.0"}, {"dataHora": "09/04/2025 02:11:41", "tempoSegundos": "16.0"}, {"dataHora": "09/04/2025 01:41:46", "tempoSegundos": "17.0"}, {"dataHora": "09/04/2025 01:11:50", "tempoSegundos": "17.0"}, {"dataHora": "09/04/2025 00:41:06", "tempoSegundos": "17.0"}, {"dataHora": "09/04/2025 00:10:15", "tempoSegundos": "17.0"}, {"dataHora": "08/04/2025 23:39:57", "tempoSegundos": "16.0"}, {"dataHora": "08/04/2025 23:10:01", "tempoSegundos": "17.0"}, {"dataHora": "08/04/2025 22:39:27", "tempoSegundos": "27.0"}, {"dataHora": "08/04/2025 05:05:16", "tempoSegundos": "20.0"}, {"dataHora": "08/04/2025 04:35:16", "tempoSegundos": "17.0"}, {"dataHora": "08/04/2025 04:04:42", "tempoSegundos": "16.0"}, {"dataHora": "08/04/2025 03:34:09", "tempoSegundos": "16.0"}, {"dataHora": "08/04/2025 03:03:37", "tempoSegundos": "16.0"}, {"dataHora": "08/04/2025 02:34:18", "tempoSegundos": "16.0"}, {"dataHora": "08/04/2025 02:02:55", "tempoSegundos": "16.0"}, {"dataHora": "08/04/2025 01:33:00", "tempoSegundos": "16.0"}, {"dataHora": "08/04/2025 01:02:55", "tempoSegundos": "17.0"}, {"dataHora": "08/04/2025 00:32:49", "tempoSegundos": "16.0"}, {"dataHora": "08/04/2025 00:02:18", "tempoSegundos": "17.0"}], "39070": [{"dataHora": "09/04/2025 04:09:54", "tempoSegundos": "16.0"}, {"dataHora": "09/04/2025 03:39:22", "tempoSegundos": "16.0"}, {"dataHora": "09/04/2025 03:08:49", "tempoSegundos": "16.0"}, {"dataHora": "09/04/2025 02:38:54", "tempoSegundos": "16.0"}, {"dataHora": "09/04/2025 02:08:21", "tempoSegundos": "16.0"}, {"dataHora": "09/04/2025 01:38:27", "tempoSegundos": "16.0"}, {"dataHora": "09/04/2025 01:08:31", "tempoSegundos": "16.0"}, {"dataHora": "09/04/2025 00:37:48", "tempoSegundos": "17.0"}, {"dataHora": "09/04/2025 00:06:58", "tempoSegundos": "16.0"}, {"dataHora": "08/04/2025 23:36:40", "tempoSegundos": "16.0"}, {"dataHora": "08/04/2025 23:06:44", "tempoSegundos": "16.0"}, {"dataHora": "08/04/2025 22:36:12", "tempoSegundos": "17.0"}, {"dataHora": "08/04/2025 22:05:51", "tempoSegundos": "16.0"}, {"dataHora": "08/04/2025 21:35:55", "tempoSegundos": "16.0"}, {"dataHora": "08/04/2025 21:04:50", "tempoSegundos": "18.0"}, {"dataHora": "08/04/2025 20:33:45", "tempoSegundos": "20.0"}, {"dataHora": "08/04/2025 04:06:51", "tempoSegundos": "16.0"}, {"dataHora": "08/04/2025 03:36:18", "tempoSegundos": "16.0"}, {"dataHora": "08/04/2025 03:05:45", "tempoSegundos": "16.0"}, {"dataHora": "08/04/2025 02:36:26", "tempoSegundos": "16.0"}, {"dataHora": "08/04/2025 02:05:04", "tempoSegundos": "16.0"}, {"dataHora": "08/04/2025 01:35:08", "tempoSegundos": "16.0"}, {"dataHora": "08/04/2025 01:05:04", "tempoSegundos": "16.0"}, {"dataHora": "08/04/2025 00:34:59", "tempoSegundos": "16.0"}, {"dataHora": "08/04/2025 00:04:29", "tempoSegundos": "17.0"}], "39074": [{"dataHora": "09/04/2025 04:47:40", "tempoSegundos": "17.0"}, {"dataHora": "08/04/2025 04:43:28", "tempoSegundos": "17.0"}, {"dataHora": "08/04/2025 04:12:54", "tempoSegundos": "17.0"}, {"dataHora": "08/04/2025 03:42:20", "tempoSegundos": "16.0"}, {"dataHora": "08/04/2025 03:11:48", "tempoSegundos": "16.0"}, {"dataHora": "08/04/2025 02:42:29", "tempoSegundos": "16.0"}, {"dataHora": "08/04/2025 02:11:08", "tempoSegundos": "16.0"}, {"dataHora": "08/04/2025 01:41:12", "tempoSegundos": "17.0"}, {"dataHora": "08/04/2025 01:11:07", "tempoSegundos": "16.0"}, {"dataHora": "08/04/2025 00:41:01", "tempoSegundos": "17.0"}, {"dataHora": "08/04/2025 00:10:31", "tempoSegundos": "20.0"}], "39075": [{"dataHora": "09/04/2025 04:32:23", "tempoSegundos": "16.0"}, {"dataHora": "09/04/2025 04:01:52", "tempoSegundos": "16.0"}, {"dataHora": "09/04/2025 03:31:20", "tempoSegundos": "16.0"}, {"dataHora": "09/04/2025 03:00:47", "tempoSegundos": "17.0"}, {"dataHora": "09/04/2025 02:30:53", "tempoSegundos": "17.0"}, {"dataHora": "09/04/2025 01:59:31", "tempoSegundos": "16.0"}, {"dataHora": "09/04/2025 01:28:59", "tempoSegundos": "16.0"}, {"dataHora": "09/04/2025 00:59:03", "tempoSegundos": "17.0"}, {"dataHora": "09/04/2025 00:28:57", "tempoSegundos": "16.0"}, {"dataHora": "08/04/2025 23:57:56", "tempoSegundos": "18.0"}, {"dataHora": "08/04/2025 23:27:49", "tempoSegundos": "28.0"}, {"dataHora": "08/04/2025 04:18:45", "tempoSegundos": "16.0"}, {"dataHora": "08/04/2025 03:49:38", "tempoSegundos": "17.0"}, {"dataHora": "08/04/2025 03:19:05", "tempoSegundos": "17.0"}, {"dataHora": "08/04/2025 02:48:32", "tempoSegundos": "16.0"}, {"dataHora": "08/04/2025 02:18:23", "tempoSegundos": "16.0"}, {"dataHora": "08/04/2025 01:47:50", "tempoSegundos": "17.0"}, {"dataHora": "08/04/2025 01:16:28", "tempoSegundos": "16.0"}, {"dataHora": "08/04/2025 00:46:13", "tempoSegundos": "16.0"}, {"dataHora": "08/04/2025 00:16:18", "tempoSegundos": "18.0"}], "39085": [{"dataHora": "09/04/2025 04:21:20", "tempoSegundos": "16.0"}, {"dataHora": "09/04/2025 03:50:47", "tempoSegundos": "16.0"}, {"dataHora": "09/04/2025 03:20:15", "tempoSegundos": "16.0"}, {"dataHora": "09/04/2025 02:49:43", "tempoSegundos": "17.0"}, {"dataHora": "09/04/2025 02:19:48", "tempoSegundos": "16.0"}, {"dataHora": "09/04/2025 01:48:26", "tempoSegundos": "17.0"}, {"dataHora": "09/04/2025 01:17:54", "tempoSegundos": "16.0"}, {"dataHora": "09/04/2025 00:47:57", "tempoSegundos": "17.0"}, {"dataHora": "09/04/2025 00:17:51", "tempoSegundos": "17.0"}, {"dataHora": "08/04/2025 23:47:16", "tempoSegundos": "26.0"}, {"dataHora": "08/04/2025 05:08:11", "tempoSegundos": "24.0"}, {"dataHora": "08/04/2025 03:58:02", "tempoSegundos": "16.0"}, {"dataHora": "08/04/2025 03:27:29", "tempoSegundos": "17.0"}, {"dataHora": "08/04/2025 02:56:56", "tempoSegundos": "16.0"}, {"dataHora": "08/04/2025 02:26:47", "tempoSegundos": "17.0"}, {"dataHora": "08/04/2025 01:56:14", "tempoSegundos": "17.0"}, {"dataHora": "08/04/2025 01:24:53", "tempoSegundos": "17.0"}, {"dataHora": "08/04/2025 00:54:37", "tempoSegundos": "16.0"}, {"dataHora": "08/04/2025 00:24:42", "tempoSegundos": "17.0"}], "39093": [{"dataHora": "09/04/2025 04:36:14", "tempoSegundos": "16.0"}, {"dataHora": "09/04/2025 04:05:15", "tempoSegundos": "17.0"}, {"dataHora": "09/04/2025 03:34:42", "tempoSegundos": "17.0"}, {"dataHora": "09/04/2025 03:04:09", "tempoSegundos": "16.0"}, {"dataHora": "09/04/2025 02:34:15", "tempoSegundos": "17.0"}, {"dataHora": "09/04/2025 02:03:42", "tempoSegundos": "17.0"}, {"dataHora": "09/04/2025 01:33:21", "tempoSegundos": "16.0"}, {"dataHora": "09/04/2025 01:03:25", "tempoSegundos": "17.0"}, {"dataHora": "09/04/2025 00:32:30", "tempoSegundos": "17.0"}, {"dataHora": "09/04/2025 00:01:29", "tempoSegundos": "23.0"}, {"dataHora": "08/04/2025 23:31:15", "tempoSegundos": "17.0"}, {"dataHora": "08/04/2025 23:00:42", "tempoSegundos": "17.0"}, {"dataHora": "08/04/2025 22:30:33", "tempoSegundos": "17.0"}, {"dataHora": "08/04/2025 22:00:24", "tempoSegundos": "18.0"}, {"dataHora": "08/04/2025 21:29:50", "tempoSegundos": "20.0"}, {"dataHora": "08/04/2025 20:58:32", "tempoSegundos": "117.0"}, {"dataHora": "08/04/2025 04:22:47", "tempoSegundos": "16.0"}, {"dataHora": "08/04/2025 03:53:39", "tempoSegundos": "16.0"}, {"dataHora": "08/04/2025 03:23:07", "tempoSegundos": "17.0"}, {"dataHora": "08/04/2025 02:52:33", "tempoSegundos": "16.0"}, {"dataHora": "08/04/2025 02:22:26", "tempoSegundos": "16.0"}, {"dataHora": "08/04/2025 01:51:53", "tempoSegundos": "16.0"}, {"dataHora": "08/04/2025 01:20:32", "tempoSegundos": "18.0"}, {"dataHora": "08/04/2025 00:50:14", "tempoSegundos": "16.0"}, {"dataHora": "08/04/2025 00:20:20", "tempoSegundos": "20.0"}], "39096": [{"dataHora": "09/04/2025 05:00:56", "tempoSegundos": "17.0"}, {"dataHora": "09/04/2025 04:31:49", "tempoSegundos": "16.0"}, {"dataHora": "09/04/2025 04:01:16", "tempoSegundos": "16.0"}, {"dataHora": "09/04/2025 03:30:44", "tempoSegundos": "17.0"}, {"dataHora": "09/04/2025 03:00:10", "tempoSegundos": "17.0"}, {"dataHora": "09/04/2025 02:30:15", "tempoSegundos": "17.0"}, {"dataHora": "09/04/2025 01:58:54", "tempoSegundos": "16.0"}, {"dataHora": "09/04/2025 01:28:21", "tempoSegundos": "17.0"}, {"dataHora": "09/04/2025 00:58:24", "tempoSegundos": "17.0"}, {"dataHora": "09/04/2025 00:28:18", "tempoSegundos": "19.0"}, {"dataHora": "08/04/2025 23:57:14", "tempoSegundos": "17.0"}, {"dataHora": "08/04/2025 23:27:07", "tempoSegundos": "17.0"}, {"dataHora": "08/04/2025 22:56:33", "tempoSegundos": "18.0"}, {"dataHora": "08/04/2025 22:26:24", "tempoSegundos": "17.0"}, {"dataHora": "08/04/2025 21:56:16", "tempoSegundos": "18.0"}, {"dataHora": "08/04/2025 21:25:42", "tempoSegundos": "17.0"}, {"dataHora": "08/04/2025 20:54:52", "tempoSegundos": "18.0"}, {"dataHora": "08/04/2025 04:51:34", "tempoSegundos": "16.0"}, {"dataHora": "08/04/2025 04:20:12", "tempoSegundos": "16.0"}, {"dataHora": "08/04/2025 03:51:06", "tempoSegundos": "16.0"}, {"dataHora": "08/04/2025 03:20:33", "tempoSegundos": "17.0"}, {"dataHora": "08/04/2025 02:50:00", "tempoSegundos": "17.0"}, {"dataHora": "08/04/2025 02:19:52", "tempoSegundos": "16.0"}, {"dataHora": "08/04/2025 01:49:18", "tempoSegundos": "17.0"}, {"dataHora": "08/04/2025 01:17:57", "tempoSegundos": "16.0"}, {"dataHora": "08/04/2025 00:47:42", "tempoSegundos": "17.0"}, {"dataHora": "08/04/2025 00:17:48", "tempoSegundos": "17.0"}], "39097": [{"dataHora": "09/04/2025 04:17:21", "tempoSegundos": "16.0"}, {"dataHora": "09/04/2025 03:46:48", "tempoSegundos": "17.0"}, {"dataHora": "09/04/2025 03:16:14", "tempoSegundos": "17.0"}, {"dataHora": "09/04/2025 02:45:54", "tempoSegundos": "17.0"}, {"dataHora": "09/04/2025 02:15:21", "tempoSegundos": "16.0"}, {"dataHora": "09/04/2025 01:45:26", "tempoSegundos": "17.0"}, {"dataHora": "09/04/2025 01:15:30", "tempoSegundos": "16.0"}, {"dataHora": "09/04/2025 00:44:47", "tempoSegundos": "16.0"}, {"dataHora": "09/04/2025 00:13:57", "tempoSegundos": "17.0"}, {"dataHora": "08/04/2025 23:43:12", "tempoSegundos": "17.0"}, {"dataHora": "08/04/2025 23:13:16", "tempoSegundos": "16.0"}, {"dataHora": "08/04/2025 22:42:44", "tempoSegundos": "16.0"}, {"dataHora": "08/04/2025 22:12:24", "tempoSegundos": "17.0"}, {"dataHora": "08/04/2025 21:42:27", "tempoSegundos": "27.0"}, {"dataHora": "08/04/2025 21:37:50", "tempoSegundos": "166.0"}, {"dataHora": "08/04/2025 05:47:06", "tempoSegundos": "16.0"}], "39100": [{"dataHora": "09/04/2025 04:59:09", "tempoSegundos": "16.0"}, {"dataHora": "08/04/2025 21:20:46", "tempoSegundos": "18.0"}], "39119": [{"dataHora": "09/04/2025 05:42:36", "tempoSegundos": "16.0"}, {"dataHora": "09/04/2025 05:12:18", "tempoSegundos": "17.0"}, {"dataHora": "09/04/2025 04:42:23", "tempoSegundos": "17.0"}, {"dataHora": "09/04/2025 04:11:50", "tempoSegundos": "16.0"}, {"dataHora": "09/04/2025 03:41:18", "tempoSegundos": "16.0"}, {"dataHora": "09/04/2025 03:10:44", "tempoSegundos": "16.0"}, {"dataHora": "09/04/2025 02:40:49", "tempoSegundos": "16.0"}, {"dataHora": "09/04/2025 02:10:17", "tempoSegundos": "17.0"}, {"dataHora": "09/04/2025 01:40:22", "tempoSegundos": "16.0"}, {"dataHora": "09/04/2025 01:10:26", "tempoSegundos": "17.0"}, {"dataHora": "09/04/2025 00:39:43", "tempoSegundos": "17.0"}, {"dataHora": "09/04/2025 00:08:26", "tempoSegundos": "16.0"}, {"dataHora": "08/04/2025 23:37:42", "tempoSegundos": "16.0"}, {"dataHora": "08/04/2025 23:07:46", "tempoSegundos": "16.0"}, {"dataHora": "08/04/2025 22:37:14", "tempoSegundos": "17.0"}, {"dataHora": "08/04/2025 22:06:53", "tempoSegundos": "16.0"}, {"dataHora": "08/04/2025 21:36:57", "tempoSegundos": "17.0"}, {"dataHora": "08/04/2025 21:05:53", "tempoSegundos": "17.0"}, {"dataHora": "08/04/2025 20:35:15", "tempoSegundos": "17.0"}, {"dataHora": "08/04/2025 20:04:58", "tempoSegundos": "16.0"}, {"dataHora": "08/04/2025 19:35:04", "tempoSegundos": "19.0"}], "39129": [{"dataHora": "09/04/2025 05:21:15", "tempoSegundos": "16.0"}, {"dataHora": "09/04/2025 04:49:43", "tempoSegundos": "17.0"}, {"dataHora": "09/04/2025 04:20:36", "tempoSegundos": "16.0"}, {"dataHora": "09/04/2025 03:50:03", "tempoSegundos": "16.0"}, {"dataHora": "09/04/2025 03:19:31", "tempoSegundos": "16.0"}, {"dataHora": "09/04/2025 02:48:57", "tempoSegundos": "17.0"}, {"dataHora": "09/04/2025 02:19:03", "tempoSegundos": "17.0"}, {"dataHora": "09/04/2025 01:47:41", "tempoSegundos": "17.0"}, {"dataHora": "09/04/2025 01:17:08", "tempoSegundos": "17.0"}, {"dataHora": "09/04/2025 00:47:39", "tempoSegundos": "17.0"}, {"dataHora": "09/04/2025 00:17:43", "tempoSegundos": "17.0"}, {"dataHora": "08/04/2025 23:46:30", "tempoSegundos": "17.0"}, {"dataHora": "08/04/2025 23:16:35", "tempoSegundos": "18.0"}, {"dataHora": "08/04/2025 22:46:00", "tempoSegundos": "18.0"}, {"dataHora": "08/04/2025 22:15:39", "tempoSegundos": "16.0"}, {"dataHora": "08/04/2025 21:45:43", "tempoSegundos": "20.0"}, {"dataHora": "08/04/2025 21:14:34", "tempoSegundos": "16.0"}, {"dataHora": "08/04/2025 20:43:56", "tempoSegundos": "17.0"}, {"dataHora": "08/04/2025 20:13:39", "tempoSegundos": "16.0"}, {"dataHora": "08/04/2025 19:43:44", "tempoSegundos": "18.0"}, {"dataHora": "08/04/2025 04:25:49", "tempoSegundos": "17.0"}, {"dataHora": "08/04/2025 03:56:42", "tempoSegundos": "17.0"}, {"dataHora": "08/04/2025 03:26:09", "tempoSegundos": "16.0"}, {"dataHora": "08/04/2025 02:55:36", "tempoSegundos": "16.0"}, {"dataHora": "08/04/2025 02:25:28", "tempoSegundos": "16.0"}, {"dataHora": "08/04/2025 01:54:55", "tempoSegundos": "16.0"}, {"dataHora": "08/04/2025 01:23:33", "tempoSegundos": "16.0"}, {"dataHora": "08/04/2025 00:53:17", "tempoSegundos": "16.0"}, {"dataHora": "08/04/2025 00:23:23", "tempoSegundos": "18.0"}], "39130": [{"dataHora": "09/04/2025 05:54:33", "tempoSegundos": "16.0"}, {"dataHora": "09/04/2025 05:24:49", "tempoSegundos": "17.0"}, {"dataHora": "09/04/2025 04:53:17", "tempoSegundos": "17.0"}, {"dataHora": "09/04/2025 04:24:10", "tempoSegundos": "17.0"}, {"dataHora": "09/04/2025 03:53:37", "tempoSegundos": "17.0"}, {"dataHora": "09/04/2025 03:23:04", "tempoSegundos": "16.0"}, {"dataHora": "09/04/2025 02:52:31", "tempoSegundos": "16.0"}, {"dataHora": "09/04/2025 02:22:36", "tempoSegundos": "16.0"}, {"dataHora": "09/04/2025 01:51:15", "tempoSegundos": "17.0"}, {"dataHora": "09/04/2025 01:20:42", "tempoSegundos": "16.0"}, {"dataHora": "09/04/2025 00:50:45", "tempoSegundos": "17.0"}, {"dataHora": "09/04/2025 00:20:39", "tempoSegundos": "17.0"}, {"dataHora": "08/04/2025 23:49:38", "tempoSegundos": "17.0"}, {"dataHora": "08/04/2025 23:19:04", "tempoSegundos": "18.0"}, {"dataHora": "08/04/2025 22:48:30", "tempoSegundos": "19.0"}, {"dataHora": "08/04/2025 22:18:19", "tempoSegundos": "19.0"}, {"dataHora": "08/04/2025 21:48:08", "tempoSegundos": "17.0"}, {"dataHora": "08/04/2025 21:17:35", "tempoSegundos": "20.0"}, {"dataHora": "08/04/2025 20:46:58", "tempoSegundos": "18.0"}, {"dataHora": "08/04/2025 20:16:40", "tempoSegundos": "18.0"}, {"dataHora": "08/04/2025 15:19:47", "tempoSegundos": "17.0"}, {"dataHora": "08/04/2025 14:49:38", "tempoSegundos": "16.0"}, {"dataHora": "08/04/2025 14:18:05", "tempoSegundos": "17.0"}, {"dataHora": "08/04/2025 13:48:10", "tempoSegundos": "16.0"}, {"dataHora": "08/04/2025 13:17:37", "tempoSegundos": "17.0"}, {"dataHora": "08/04/2025 12:47:42", "tempoSegundos": "17.0"}, {"dataHora": "08/04/2025 12:17:08", "tempoSegundos": "17.0"}, {"dataHora": "08/04/2025 11:46:10", "tempoSegundos": "16.0"}, {"dataHora": "08/04/2025 11:15:36", "tempoSegundos": "17.0"}, {"dataHora": "08/04/2025 10:46:07", "tempoSegundos": "16.0"}, {"dataHora": "08/04/2025 10:16:02", "tempoSegundos": "16.0"}, {"dataHora": "08/04/2025 09:44:29", "tempoSegundos": "16.0"}, {"dataHora": "08/04/2025 09:14:22", "tempoSegundos": "17.0"}, {"dataHora": "08/04/2025 09:02:33", "tempoSegundos": "18.0"}, {"dataHora": "08/04/2025 06:08:56", "tempoSegundos": "18.0"}, {"dataHora": "08/04/2025 05:39:42", "tempoSegundos": "17.0"}, {"dataHora": "08/04/2025 05:09:09", "tempoSegundos": "16.0"}, {"dataHora": "08/04/2025 04:39:14", "tempoSegundos": "16.0"}, {"dataHora": "08/04/2025 04:08:40", "tempoSegundos": "16.0"}, {"dataHora": "08/04/2025 03:38:06", "tempoSegundos": "17.0"}, {"dataHora": "08/04/2025 03:07:34", "tempoSegundos": "16.0"}, {"dataHora": "08/04/2025 02:38:15", "tempoSegundos": "17.0"}, {"dataHora": "08/04/2025 02:06:52", "tempoSegundos": "16.0"}, {"dataHora": "08/04/2025 01:36:57", "tempoSegundos": "17.0"}, {"dataHora": "08/04/2025 01:06:51", "tempoSegundos": "17.0"}, {"dataHora": "08/04/2025 00:36:45", "tempoSegundos": "16.0"}, {"dataHora": "08/04/2025 00:06:14", "tempoSegundos": "16.0"}], "39135": [{"dataHora": "09/04/2025 04:34:25", "tempoSegundos": "17.0"}, {"dataHora": "09/04/2025 04:03:52", "tempoSegundos": "17.0"}, {"dataHora": "09/04/2025 03:33:31", "tempoSegundos": "17.0"}, {"dataHora": "09/04/2025 03:02:58", "tempoSegundos": "17.0"}, {"dataHora": "09/04/2025 02:33:03", "tempoSegundos": "16.0"}, {"dataHora": "09/04/2025 02:01:41", "tempoSegundos": "17.0"}, {"dataHora": "09/04/2025 01:31:08", "tempoSegundos": "17.0"}, {"dataHora": "09/04/2025 01:01:11", "tempoSegundos": "17.0"}, {"dataHora": "09/04/2025 00:31:05", "tempoSegundos": "17.0"}, {"dataHora": "09/04/2025 00:00:03", "tempoSegundos": "22.0"}, {"dataHora": "08/04/2025 23:29:50", "tempoSegundos": "16.0"}, {"dataHora": "08/04/2025 22:59:17", "tempoSegundos": "17.0"}, {"dataHora": "08/04/2025 22:29:08", "tempoSegundos": "17.0"}, {"dataHora": "08/04/2025 21:59:00", "tempoSegundos": "18.0"}, {"dataHora": "08/04/2025 21:28:25", "tempoSegundos": "31.0"}], "39136": [{"dataHora": "09/04/2025 06:07:47", "tempoSegundos": "16.0"}, {"dataHora": "09/04/2025 05:37:25", "tempoSegundos": "16.0"}, {"dataHora": "09/04/2025 05:07:07", "tempoSegundos": "17.0"}, {"dataHora": "09/04/2025 04:37:12", "tempoSegundos": "16.0"}, {"dataHora": "09/04/2025 04:06:39", "tempoSegundos": "16.0"}, {"dataHora": "09/04/2025 03:36:06", "tempoSegundos": "16.0"}, {"dataHora": "09/04/2025 03:05:34", "tempoSegundos": "17.0"}, {"dataHora": "09/04/2025 02:35:38", "tempoSegundos": "16.0"}, {"dataHora": "09/04/2025 02:05:06", "tempoSegundos": "17.0"}, {"dataHora": "09/04/2025 01:35:11", "tempoSegundos": "17.0"}, {"dataHora": "09/04/2025 01:05:14", "tempoSegundos": "17.0"}, {"dataHora": "09/04/2025 00:34:31", "tempoSegundos": "18.0"}, {"dataHora": "09/04/2025 00:03:39", "tempoSegundos": "18.0"}, {"dataHora": "08/04/2025 23:33:19", "tempoSegundos": "17.0"}, {"dataHora": "08/04/2025 23:02:34", "tempoSegundos": "18.0"}, {"dataHora": "08/04/2025 22:32:24", "tempoSegundos": "17.0"}, {"dataHora": "08/04/2025 22:02:15", "tempoSegundos": "17.0"}, {"dataHora": "08/04/2025 21:31:42", "tempoSegundos": "32.0"}, {"dataHora": "08/04/2025 21:00:37", "tempoSegundos": "95.0"}], "39141": [{"dataHora": "09/04/2025 04:46:32", "tempoSegundos": "17.0"}, {"dataHora": "09/04/2025 04:15:58", "tempoSegundos": "16.0"}, {"dataHora": "09/04/2025 03:45:26", "tempoSegundos": "17.0"}, {"dataHora": "09/04/2025 03:14:53", "tempoSegundos": "16.0"}, {"dataHora": "09/04/2025 02:44:58", "tempoSegundos": "17.0"}, {"dataHora": "09/04/2025 02:14:25", "tempoSegundos": "16.0"}, {"dataHora": "09/04/2025 01:44:31", "tempoSegundos": "16.0"}, {"dataHora": "09/04/2025 01:14:09", "tempoSegundos": "17.0"}, {"dataHora": "09/04/2025 00:43:26", "tempoSegundos": "16.0"}, {"dataHora": "09/04/2025 00:12:37", "tempoSegundos": "17.0"}, {"dataHora": "08/04/2025 23:42:18", "tempoSegundos": "17.0"}, {"dataHora": "08/04/2025 23:12:22", "tempoSegundos": "17.0"}, {"dataHora": "08/04/2025 22:41:49", "tempoSegundos": "17.0"}, {"dataHora": "08/04/2025 22:11:30", "tempoSegundos": "17.0"}, {"dataHora": "08/04/2025 21:41:34", "tempoSegundos": "149.0"}, {"dataHora": "08/04/2025 05:27:13", "tempoSegundos": "16.0"}, {"dataHora": "08/04/2025 04:56:40", "tempoSegundos": "17.0"}, {"dataHora": "08/04/2025 04:25:17", "tempoSegundos": "16.0"}, {"dataHora": "08/04/2025 03:56:11", "tempoSegundos": "16.0"}, {"dataHora": "08/04/2025 03:25:38", "tempoSegundos": "17.0"}, {"dataHora": "08/04/2025 02:55:05", "tempoSegundos": "17.0"}, {"dataHora": "08/04/2025 02:24:30", "tempoSegundos": "16.0"}, {"dataHora": "08/04/2025 01:53:57", "tempoSegundos": "16.0"}, {"dataHora": "08/04/2025 01:22:36", "tempoSegundos": "17.0"}, {"dataHora": "08/04/2025 00:52:20", "tempoSegundos": "17.0"}, {"dataHora": "08/04/2025 00:22:24", "tempoSegundos": "16.0"}], "39142": [{"dataHora": "09/04/2025 04:58:50", "tempoSegundos": "17.0"}, {"dataHora": "09/04/2025 04:29:43", "tempoSegundos": "16.0"}, {"dataHora": "09/04/2025 03:59:10", "tempoSegundos": "16.0"}, {"dataHora": "09/04/2025 03:28:38", "tempoSegundos": "17.0"}, {"dataHora": "09/04/2025 02:58:04", "tempoSegundos": "17.0"}, {"dataHora": "09/04/2025 02:28:09", "tempoSegundos": "17.0"}, {"dataHora": "09/04/2025 01:56:47", "tempoSegundos": "17.0"}, {"dataHora": "09/04/2025 01:26:15", "tempoSegundos": "16.0"}, {"dataHora": "09/04/2025 00:56:18", "tempoSegundos": "17.0"}, {"dataHora": "09/04/2025 00:26:12", "tempoSegundos": "17.0"}, {"dataHora": "08/04/2025 23:55:10", "tempoSegundos": "17.0"}, {"dataHora": "08/04/2025 23:25:03", "tempoSegundos": "17.0"}, {"dataHora": "08/04/2025 22:54:29", "tempoSegundos": "22.0"}, {"dataHora": "08/04/2025 22:24:15", "tempoSegundos": "16.0"}, {"dataHora": "08/04/2025 21:54:07", "tempoSegundos": "17.0"}, {"dataHora": "08/04/2025 21:23:34", "tempoSegundos": "31.0"}, {"dataHora": "08/04/2025 05:46:08", "tempoSegundos": "16.0"}, {"dataHora": "08/04/2025 05:16:12", "tempoSegundos": "17.0"}, {"dataHora": "08/04/2025 04:45:38", "tempoSegundos": "24.0"}, {"dataHora": "08/04/2025 04:14:08", "tempoSegundos": "16.0"}, {"dataHora": "08/04/2025 03:45:01", "tempoSegundos": "17.0"}, {"dataHora": "08/04/2025 03:14:28", "tempoSegundos": "16.0"}, {"dataHora": "08/04/2025 02:44:21", "tempoSegundos": "16.0"}, {"dataHora": "08/04/2025 02:12:58", "tempoSegundos": "16.0"}, {"dataHora": "08/04/2025 01:43:02", "tempoSegundos": "16.0"}, {"dataHora": "08/04/2025 01:35:07", "tempoSegundos": "16.0"}, {"dataHora": "08/04/2025 01:05:01", "tempoSegundos": "17.0"}, {"dataHora": "08/04/2025 00:34:56", "tempoSegundos": "17.0"}, {"dataHora": "08/04/2025 00:04:25", "tempoSegundos": "17.0"}], "39502": [{"dataHora": "09/04/2025 05:05:51", "tempoSegundos": "17.0"}, {"dataHora": "09/04/2025 04:35:30", "tempoSegundos": "17.0"}, {"dataHora": "09/04/2025 04:04:57", "tempoSegundos": "17.0"}, {"dataHora": "09/04/2025 03:34:25", "tempoSegundos": "17.0"}, {"dataHora": "09/04/2025 03:03:26", "tempoSegundos": "17.0"}, {"dataHora": "09/04/2025 02:33:31", "tempoSegundos": "17.0"}, {"dataHora": "09/04/2025 02:02:32", "tempoSegundos": "17.0"}, {"dataHora": "09/04/2025 01:32:38", "tempoSegundos": "19.0"}, {"dataHora": "09/04/2025 01:01:51", "tempoSegundos": "17.0"}, {"dataHora": "09/04/2025 00:31:44", "tempoSegundos": "17.0"}, {"dataHora": "09/04/2025 00:00:43", "tempoSegundos": "22.0"}, {"dataHora": "08/04/2025 23:30:30", "tempoSegundos": "19.0"}, {"dataHora": "08/04/2025 05:28:23", "tempoSegundos": "17.0"}, {"dataHora": "08/04/2025 04:58:27", "tempoSegundos": "25.0"}, {"dataHora": "08/04/2025 04:26:56", "tempoSegundos": "17.0"}, {"dataHora": "08/04/2025 03:57:48", "tempoSegundos": "17.0"}, {"dataHora": "08/04/2025 03:27:16", "tempoSegundos": "16.0"}, {"dataHora": "08/04/2025 02:56:44", "tempoSegundos": "17.0"}, {"dataHora": "08/04/2025 02:26:35", "tempoSegundos": "16.0"}, {"dataHora": "08/04/2025 01:56:01", "tempoSegundos": "16.0"}, {"dataHora": "08/04/2025 01:24:40", "tempoSegundos": "16.0"}, {"dataHora": "08/04/2025 00:54:23", "tempoSegundos": "16.0"}, {"dataHora": "08/04/2025 00:24:28", "tempoSegundos": "17.0"}], "39505": [{"dataHora": "08/04/2025 00:07:29", "tempoSegundos": "16.0"}], "39509": [{"dataHora": "09/04/2025 05:54:36", "tempoSegundos": "16.0"}, {"dataHora": "09/04/2025 05:25:18", "tempoSegundos": "16.0"}, {"dataHora": "09/04/2025 04:53:46", "tempoSegundos": "16.0"}, {"dataHora": "09/04/2025 04:24:39", "tempoSegundos": "16.0"}, {"dataHora": "09/04/2025 03:54:07", "tempoSegundos": "16.0"}, {"dataHora": "09/04/2025 03:23:34", "tempoSegundos": "17.0"}, {"dataHora": "09/04/2025 02:53:01", "tempoSegundos": "16.0"}, {"dataHora": "09/04/2025 02:23:07", "tempoSegundos": "16.0"}, {"dataHora": "09/04/2025 01:51:45", "tempoSegundos": "17.0"}, {"dataHora": "09/04/2025 01:21:13", "tempoSegundos": "16.0"}, {"dataHora": "09/04/2025 00:51:19", "tempoSegundos": "16.0"}, {"dataHora": "09/04/2025 00:21:13", "tempoSegundos": "16.0"}, {"dataHora": "08/04/2025 23:50:12", "tempoSegundos": "16.0"}, {"dataHora": "08/04/2025 23:20:04", "tempoSegundos": "16.0"}, {"dataHora": "08/04/2025 22:49:31", "tempoSegundos": "25.0"}, {"dataHora": "08/04/2025 04:48:35", "tempoSegundos": "19.0"}, {"dataHora": "08/04/2025 04:17:10", "tempoSegundos": "17.0"}, {"dataHora": "08/04/2025 03:48:02", "tempoSegundos": "16.0"}, {"dataHora": "08/04/2025 03:17:30", "tempoSegundos": "16.0"}, {"dataHora": "08/04/2025 02:46:57", "tempoSegundos": "16.0"}, {"dataHora": "08/04/2025 02:16:48", "tempoSegundos": "16.0"}, {"dataHora": "08/04/2025 01:46:15", "tempoSegundos": "16.0"}, {"dataHora": "08/04/2025 01:14:54", "tempoSegundos": "17.0"}, {"dataHora": "08/04/2025 00:45:53", "tempoSegundos": "16.0"}, {"dataHora": "08/04/2025 00:14:56", "tempoSegundos": "17.0"}], "39512": [{"dataHora": "09/04/2025 04:15:31", "tempoSegundos": "16.0"}, {"dataHora": "09/04/2025 03:45:00", "tempoSegundos": "17.0"}, {"dataHora": "09/04/2025 03:14:26", "tempoSegundos": "16.0"}, {"dataHora": "09/04/2025 02:44:31", "tempoSegundos": "17.0"}, {"dataHora": "09/04/2025 02:13:58", "tempoSegundos": "16.0"}, {"dataHora": "09/04/2025 01:44:03", "tempoSegundos": "16.0"}, {"dataHora": "09/04/2025 01:14:07", "tempoSegundos": "17.0"}, {"dataHora": "09/04/2025 00:43:24", "tempoSegundos": "17.0"}, {"dataHora": "09/04/2025 00:12:33", "tempoSegundos": "27.0"}, {"dataHora": "08/04/2025 23:42:04", "tempoSegundos": "20.0"}, {"dataHora": "08/04/2025 23:12:05", "tempoSegundos": "16.0"}, {"dataHora": "08/04/2025 22:41:32", "tempoSegundos": "18.0"}, {"dataHora": "08/04/2025 22:11:11", "tempoSegundos": "22.0"}, {"dataHora": "08/04/2025 21:41:09", "tempoSegundos": "21.0"}, {"dataHora": "08/04/2025 21:09:59", "tempoSegundos": "17.0"}, {"dataHora": "08/04/2025 20:39:20", "tempoSegundos": "18.0"}, {"dataHora": "08/04/2025 20:09:02", "tempoSegundos": "16.0"}, {"dataHora": "08/04/2025 19:38:42", "tempoSegundos": "16.0"}, {"dataHora": "08/04/2025 19:07:57", "tempoSegundos": "23.0"}, {"dataHora": "08/04/2025 04:14:30", "tempoSegundos": "16.0"}, {"dataHora": "08/04/2025 03:45:23", "tempoSegundos": "16.0"}, {"dataHora": "08/04/2025 03:14:52", "tempoSegundos": "16.0"}, {"dataHora": "08/04/2025 02:44:19", "tempoSegundos": "16.0"}, {"dataHora": "08/04/2025 02:13:22", "tempoSegundos": "16.0"}, {"dataHora": "08/04/2025 01:43:26", "tempoSegundos": "16.0"}, {"dataHora": "08/04/2025 01:13:21", "tempoSegundos": "16.0"}, {"dataHora": "08/04/2025 00:43:15", "tempoSegundos": "16.0"}, {"dataHora": "08/04/2025 00:12:45", "tempoSegundos": "17.0"}], "39516": [{"dataHora": "09/04/2025 04:58:40", "tempoSegundos": "17.0"}, {"dataHora": "09/04/2025 04:29:34", "tempoSegundos": "17.0"}, {"dataHora": "09/04/2025 03:59:01", "tempoSegundos": "17.0"}, {"dataHora": "09/04/2025 03:28:29", "tempoSegundos": "17.0"}, {"dataHora": "09/04/2025 02:57:55", "tempoSegundos": "16.0"}, {"dataHora": "09/04/2025 02:28:01", "tempoSegundos": "17.0"}, {"dataHora": "09/04/2025 01:56:39", "tempoSegundos": "17.0"}, {"dataHora": "09/04/2025 01:26:06", "tempoSegundos": "17.0"}, {"dataHora": "09/04/2025 00:56:10", "tempoSegundos": "17.0"}, {"dataHora": "09/04/2025 00:26:03", "tempoSegundos": "17.0"}, {"dataHora": "08/04/2025 23:55:02", "tempoSegundos": "20.0"}, {"dataHora": "08/04/2025 04:51:59", "tempoSegundos": "17.0"}, {"dataHora": "08/04/2025 04:20:36", "tempoSegundos": "16.0"}, {"dataHora": "08/04/2025 03:51:29", "tempoSegundos": "16.0"}, {"dataHora": "08/04/2025 03:20:56", "tempoSegundos": "16.0"}, {"dataHora": "08/04/2025 02:50:23", "tempoSegundos": "16.0"}, {"dataHora": "08/04/2025 02:20:16", "tempoSegundos": "16.0"}, {"dataHora": "08/04/2025 01:49:42", "tempoSegundos": "16.0"}, {"dataHora": "08/04/2025 01:18:21", "tempoSegundos": "16.0"}, {"dataHora": "08/04/2025 00:48:05", "tempoSegundos": "16.0"}, {"dataHora": "08/04/2025 00:18:11", "tempoSegundos": "16.0"}], "39531": [{"dataHora": "09/04/2025 04:50:42", "tempoSegundos": "17.0"}, {"dataHora": "09/04/2025 04:21:36", "tempoSegundos": "16.0"}, {"dataHora": "09/04/2025 03:51:04", "tempoSegundos": "16.0"}, {"dataHora": "09/04/2025 03:20:31", "tempoSegundos": "17.0"}, {"dataHora": "09/04/2025 02:49:58", "tempoSegundos": "17.0"}, {"dataHora": "09/04/2025 02:20:03", "tempoSegundos": "16.0"}, {"dataHora": "09/04/2025 01:48:42", "tempoSegundos": "17.0"}, {"dataHora": "09/04/2025 01:18:10", "tempoSegundos": "17.0"}, {"dataHora": "09/04/2025 00:48:14", "tempoSegundos": "17.0"}, {"dataHora": "09/04/2025 00:18:07", "tempoSegundos": "17.0"}, {"dataHora": "08/04/2025 23:47:06", "tempoSegundos": "17.0"}, {"dataHora": "08/04/2025 23:17:36", "tempoSegundos": "17.0"}, {"dataHora": "08/04/2025 22:47:02", "tempoSegundos": "25.0"}, {"dataHora": "08/04/2025 05:27:36", "tempoSegundos": "17.0"}, {"dataHora": "08/04/2025 04:57:02", "tempoSegundos": "17.0"}, {"dataHora": "08/04/2025 04:25:40", "tempoSegundos": "17.0"}, {"dataHora": "08/04/2025 03:56:32", "tempoSegundos": "16.0"}, {"dataHora": "08/04/2025 03:26:00", "tempoSegundos": "16.0"}, {"dataHora": "08/04/2025 02:55:26", "tempoSegundos": "16.0"}, {"dataHora": "08/04/2025 02:25:18", "tempoSegundos": "16.0"}, {"dataHora": "08/04/2025 01:54:44", "tempoSegundos": "16.0"}, {"dataHora": "08/04/2025 01:23:23", "tempoSegundos": "16.0"}, {"dataHora": "08/04/2025 00:53:07", "tempoSegundos": "16.0"}, {"dataHora": "08/04/2025 00:23:12", "tempoSegundos": "16.0"}], "39532": [{"dataHora": "08/04/2025 04:10:28", "tempoSegundos": "16.0"}, {"dataHora": "08/04/2025 03:39:55", "tempoSegundos": "17.0"}, {"dataHora": "08/04/2025 03:09:22", "tempoSegundos": "17.0"}, {"dataHora": "08/04/2025 02:40:03", "tempoSegundos": "16.0"}, {"dataHora": "08/04/2025 02:08:42", "tempoSegundos": "16.0"}, {"dataHora": "08/04/2025 01:38:47", "tempoSegundos": "16.0"}, {"dataHora": "08/04/2025 01:08:42", "tempoSegundos": "16.0"}, {"dataHora": "08/04/2025 00:38:36", "tempoSegundos": "16.0"}, {"dataHora": "08/04/2025 00:08:07", "tempoSegundos": "16.0"}], "39535": [{"dataHora": "09/04/2025 04:52:20", "tempoSegundos": "17.0"}, {"dataHora": "09/04/2025 04:23:13", "tempoSegundos": "16.0"}, {"dataHora": "09/04/2025 03:52:41", "tempoSegundos": "17.0"}, {"dataHora": "09/04/2025 03:22:09", "tempoSegundos": "16.0"}, {"dataHora": "09/04/2025 02:51:35", "tempoSegundos": "16.0"}, {"dataHora": "09/04/2025 02:21:41", "tempoSegundos": "16.0"}, {"dataHora": "09/04/2025 01:50:19", "tempoSegundos": "17.0"}, {"dataHora": "09/04/2025 01:19:47", "tempoSegundos": "17.0"}, {"dataHora": "09/04/2025 00:49:50", "tempoSegundos": "17.0"}, {"dataHora": "09/04/2025 00:19:44", "tempoSegundos": "17.0"}, {"dataHora": "08/04/2025 23:48:44", "tempoSegundos": "16.0"}, {"dataHora": "08/04/2025 23:18:36", "tempoSegundos": "16.0"}, {"dataHora": "08/04/2025 22:48:03", "tempoSegundos": "19.0"}, {"dataHora": "08/04/2025 22:17:52", "tempoSegundos": "20.0"}, {"dataHora": "08/04/2025 04:14:04", "tempoSegundos": "16.0"}, {"dataHora": "08/04/2025 03:44:57", "tempoSegundos": "16.0"}, {"dataHora": "08/04/2025 03:12:35", "tempoSegundos": "17.0"}, {"dataHora": "08/04/2025 02:43:16", "tempoSegundos": "16.0"}, {"dataHora": "08/04/2025 02:11:54", "tempoSegundos": "17.0"}, {"dataHora": "08/04/2025 01:41:58", "tempoSegundos": "16.0"}, {"dataHora": "08/04/2025 01:11:53", "tempoSegundos": "16.0"}, {"dataHora": "08/04/2025 00:41:21", "tempoSegundos": "16.0"}, {"dataHora": "08/04/2025 00:10:52", "tempoSegundos": "16.0"}], "39536": [{"dataHora": "09/04/2025 04:45:47", "tempoSegundos": "16.0"}, {"dataHora": "08/04/2025 04:53:39", "tempoSegundos": "18.0"}, {"dataHora": "08/04/2025 04:22:15", "tempoSegundos": "16.0"}, {"dataHora": "08/04/2025 03:53:08", "tempoSegundos": "16.0"}, {"dataHora": "08/04/2025 03:22:36", "tempoSegundos": "17.0"}, {"dataHora": "08/04/2025 02:52:03", "tempoSegundos": "16.0"}, {"dataHora": "08/04/2025 02:21:54", "tempoSegundos": "16.0"}, {"dataHora": "08/04/2025 01:51:22", "tempoSegundos": "16.0"}, {"dataHora": "08/04/2025 01:20:02", "tempoSegundos": "16.0"}, {"dataHora": "08/04/2025 00:49:47", "tempoSegundos": "16.0"}, {"dataHora": "08/04/2025 00:19:51", "tempoSegundos": "22.0"}], "39539": [{"dataHora": "09/04/2025 05:39:05", "tempoSegundos": "16.0"}, {"dataHora": "09/04/2025 05:08:48", "tempoSegundos": "16.0"}, {"dataHora": "09/04/2025 04:38:53", "tempoSegundos": "16.0"}, {"dataHora": "09/04/2025 04:08:20", "tempoSegundos": "16.0"}, {"dataHora": "09/04/2025 03:37:48", "tempoSegundos": "16.0"}, {"dataHora": "09/04/2025 03:06:49", "tempoSegundos": "16.0"}, {"dataHora": "09/04/2025 02:36:54", "tempoSegundos": "16.0"}, {"dataHora": "09/04/2025 02:06:22", "tempoSegundos": "16.0"}, {"dataHora": "09/04/2025 01:36:27", "tempoSegundos": "17.0"}, {"dataHora": "09/04/2025 01:06:31", "tempoSegundos": "17.0"}, {"dataHora": "09/04/2025 00:35:47", "tempoSegundos": "16.0"}, {"dataHora": "09/04/2025 00:04:57", "tempoSegundos": "17.0"}, {"dataHora": "08/04/2025 23:34:13", "tempoSegundos": "16.0"}, {"dataHora": "08/04/2025 23:04:17", "tempoSegundos": "17.0"}, {"dataHora": "08/04/2025 22:33:43", "tempoSegundos": "18.0"}, {"dataHora": "08/04/2025 04:51:19", "tempoSegundos": "16.0"}, {"dataHora": "08/04/2025 04:19:57", "tempoSegundos": "16.0"}, {"dataHora": "08/04/2025 03:50:49", "tempoSegundos": "16.0"}, {"dataHora": "08/04/2025 03:20:17", "tempoSegundos": "16.0"}, {"dataHora": "08/04/2025 02:49:44", "tempoSegundos": "16.0"}, {"dataHora": "08/04/2025 02:19:36", "tempoSegundos": "16.0"}, {"dataHora": "08/04/2025 01:49:02", "tempoSegundos": "16.0"}, {"dataHora": "08/04/2025 01:17:41", "tempoSegundos": "16.0"}, {"dataHora": "08/04/2025 00:46:58", "tempoSegundos": "16.0"}, {"dataHora": "08/04/2025 00:17:04", "tempoSegundos": "16.0"}], "39540": [{"dataHora": "09/04/2025 06:42:17", "tempoSegundos": "17.0"}, {"dataHora": "09/04/2025 06:11:55", "tempoSegundos": "16.0"}, {"dataHora": "09/04/2025 05:41:34", "tempoSegundos": "17.0"}, {"dataHora": "09/04/2025 05:11:16", "tempoSegundos": "16.0"}, {"dataHora": "09/04/2025 04:41:21", "tempoSegundos": "16.0"}, {"dataHora": "09/04/2025 04:10:48", "tempoSegundos": "16.0"}, {"dataHora": "09/04/2025 03:40:16", "tempoSegundos": "17.0"}, {"dataHora": "09/04/2025 03:09:43", "tempoSegundos": "16.0"}, {"dataHora": "09/04/2025 02:39:48", "tempoSegundos": "17.0"}, {"dataHora": "09/04/2025 02:09:15", "tempoSegundos": "17.0"}, {"dataHora": "09/04/2025 01:39:20", "tempoSegundos": "17.0"}, {"dataHora": "09/04/2025 01:09:25", "tempoSegundos": "16.0"}, {"dataHora": "09/04/2025 00:38:41", "tempoSegundos": "16.0"}, {"dataHora": "09/04/2025 00:07:51", "tempoSegundos": "17.0"}, {"dataHora": "08/04/2025 23:37:33", "tempoSegundos": "17.0"}, {"dataHora": "08/04/2025 23:07:38", "tempoSegundos": "17.0"}, {"dataHora": "08/04/2025 22:37:04", "tempoSegundos": "17.0"}, {"dataHora": "08/04/2025 22:06:44", "tempoSegundos": "17.0"}, {"dataHora": "08/04/2025 21:36:49", "tempoSegundos": "16.0"}, {"dataHora": "08/04/2025 21:05:43", "tempoSegundos": "19.0"}, {"dataHora": "08/04/2025 20:35:04", "tempoSegundos": "17.0"}, {"dataHora": "08/04/2025 20:04:46", "tempoSegundos": "16.0"}, {"dataHora": "08/04/2025 19:34:52", "tempoSegundos": "16.0"}, {"dataHora": "08/04/2025 19:04:09", "tempoSegundos": "18.0"}, {"dataHora": "08/04/2025 18:34:12", "tempoSegundos": "16.0"}, {"dataHora": "08/04/2025 18:04:04", "tempoSegundos": "17.0"}, {"dataHora": "08/04/2025 17:32:42", "tempoSegundos": "17.0"}, {"dataHora": "08/04/2025 17:02:46", "tempoSegundos": "16.0"}, {"dataHora": "08/04/2025 16:32:13", "tempoSegundos": "17.0"}, {"dataHora": "08/04/2025 16:01:39", "tempoSegundos": "17.0"}, {"dataHora": "08/04/2025 15:31:31", "tempoSegundos": "16.0"}, {"dataHora": "08/04/2025 15:00:57", "tempoSegundos": "18.0"}], "39542": [{"dataHora": "08/04/2025 04:25:38", "tempoSegundos": "17.0"}, {"dataHora": "08/04/2025 03:56:31", "tempoSegundos": "17.0"}, {"dataHora": "08/04/2025 03:25:58", "tempoSegundos": "17.0"}, {"dataHora": "08/04/2025 02:55:24", "tempoSegundos": "17.0"}, {"dataHora": "08/04/2025 02:25:16", "tempoSegundos": "17.0"}, {"dataHora": "08/04/2025 01:54:43", "tempoSegundos": "16.0"}, {"dataHora": "08/04/2025 01:23:23", "tempoSegundos": "16.0"}, {"dataHora": "08/04/2025 00:53:06", "tempoSegundos": "17.0"}, {"dataHora": "08/04/2025 00:23:11", "tempoSegundos": "17.0"}], "400147": [{"dataHora": "08/04/2025 21:52:08", "tempoSegundos": "2.0"}, {"dataHora": "08/04/2025 21:51:06", "tempoSegundos": "2.0"}]};
+        
+        // Função para filtrar veículos
+        function filterVehicles(status) {
+            const buttons = document.querySelectorAll('.filter-buttons button');
+            buttons.forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            const vehicles = document.querySelectorAll('.vehicle');
+            const searchTerm = document.getElementById('search').value.toLowerCase();
+            
+            vehicles.forEach(vehicle => {
+                const vehicleStatus = vehicle.classList.contains('online') ? 'online' : 
+                                     vehicle.classList.contains('offline') ? 'offline' : 'erro';
+                const vehicleId = vehicle.getAttribute('data-veiculo').toLowerCase();
+                
+                const matchesStatus = status === 'all' || vehicleStatus === status;
+                const matchesSearch = searchTerm === '' || vehicleId.includes(searchTerm);
+                
+                vehicle.style.display = matchesStatus && matchesSearch ? 'block' : 'none';
+            });
+            
+            checkNoResults();
+        }
+        
+        // Função para buscar veículos
+        function searchVehicle() {
+            const searchTerm = document.getElementById('search').value.toLowerCase();
+            const activeFilter = document.querySelector('.filter-buttons button.active').textContent.toLowerCase();
+            
+            const vehicles = document.querySelectorAll('.vehicle');
+            let hasResults = false;
+            
+            vehicles.forEach(vehicle => {
+                const vehicleStatus = vehicle.classList.contains('online') ? 'online' : 
+                                     vehicle.classList.contains('offline') ? 'offline' : 'erro';
+                const vehicleId = vehicle.getAttribute('data-veiculo').toLowerCase();
+                
+                const matchesFilter = activeFilter === 'todos' || 
+                                    (activeFilter === 'ativos' && vehicleStatus === 'online') ||
+                                    (activeFilter === 'inativos' && (vehicleStatus === 'offline' || vehicleStatus === 'erro'));
+                const matchesSearch = searchTerm === '' || vehicleId.includes(searchTerm);
+                
+                if (matchesFilter && matchesSearch) {
+                    vehicle.style.display = 'block';
+                    hasResults = true;
+                } else {
+                    vehicle.style.display = 'none';
+                }
+            });
+            
+            checkNoResults();
+        }
+        
+        // Verifica se não há resultados e exibe mensagem
+        function checkNoResults() {
+            const visibleVehicles = document.querySelectorAll('.vehicle[style="display: block;"]');
+            const noResults = document.getElementById('no-results');
+            
+            if (visibleVehicles.length === 0) {
+                noResults.style.display = 'block';
+            } else {
+                noResults.style.display = 'none';
+            }
+        }
+        
+        // Função para alternar modo escuro
+        function toggleDarkMode() {
+            document.body.classList.toggle('dark-mode');
+            const button = event.target;
+            if (document.body.classList.contains('dark-mode')) {
+                button.textContent = 'Modo Claro';
+            } else {
+                button.textContent = 'Modo Escuro';
+            }
+        }
+        
+        // Função para mostrar detalhes do veículo
+        function showVehicleDetails(prefixo) {
+            const modal = document.getElementById('vehicleModal');
+            const modalTitle = document.getElementById('modalTitle');
+            const vehicleDetails = document.getElementById('vehicleDetails');
+            const comunicacoesList = document.getElementById('comunicacoesList');
+            
+            const veiculo = veiculoData[prefixo] || {};
+            const comunicacoes = comunicacoesData[prefixo] || [];
+            
+            // Preenche os detalhes do veículo
+            modalTitle.textContent = `Veículo ${prefixo}`;
+            vehicleDetails.innerHTML = `
+                <div><strong>Prefixo:</strong> ${prefixo}</div>
+                <div><strong>Série:</strong> ${veiculo.serie || 'N/A'}</div>
+                <div><strong>Versão:</strong> ${veiculo.versao || 'N/A'}</div>
+                <div><strong>EOD:</strong> ${veiculo.eod || 'N/A'}</div>
+    
+            `;
+            
+            // Preenche o histórico de comunicações
+            comunicacoesList.innerHTML = '';
+            if (comunicacoes.length > 0) {
+                comunicacoes.forEach(com => {
+                    const periodoEmoji = getPeriodoEmoji(new Date(com.dataHora));
+                    const div = document.createElement('div');
+                    div.className = 'comunicacao-item';
+                    div.innerHTML = `
+                        <span class="periodo-emoji">${periodoEmoji}</span>
+                        <strong>${com.dataHora || 'N/A'}</strong><br>
+                        
+                    `;
+                    comunicacoesList.appendChild(div);
+                });
+            } else {
+                comunicacoesList.innerHTML = '<div>Nenhuma comunicação registrada</div>';
+            }
+            
+            // Mostra o modal
+            modal.style.display = 'block';
+        }
+        
+        // Função auxiliar para obter emoji do período do dia
+        function getPeriodoEmoji(date) {
+            if (!date || isNaN(date)) return '';
+            const hora = date.getHours();
+            if (hora >= 0 && hora < 6) return "🌙";
+            if (hora >= 6 && hora < 12) return "☀️";
+            if (hora >= 12 && hora < 18) return "🌤️";
+            return "🌆";
+        }
+        
+        // Fechar o modal quando clicar no X
+        document.querySelector('.close').onclick = function() {
+            document.getElementById('vehicleModal').style.display = 'none';
+        }
+        
+        // Fechar o modal quando clicar fora dele
+        window.onclick = function(event) {
+            if (event.target == document.getElementById('vehicleModal')) {
+                document.getElementById('vehicleModal').style.display = 'none';
+            }
+        }
+        
+        // Inicializar buscando veículos online por padrão
+        document.addEventListener('DOMContentLoaded', function() {
+            filterVehicles('all');
+        });
+    </script>
+</body>
+</html>
