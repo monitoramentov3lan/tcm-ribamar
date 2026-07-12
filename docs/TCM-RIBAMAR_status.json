@@ -1,8 +1,84 @@
 {
   "garagem": "TCM-RIBAMAR",
-  "online": 0,
-  "offline": "ERRO",
-  "last_update": "2026-07-12T06:17:20.511322-03:00",
-  "panel_url": "N/A",
-  "tgs_history": []
+  "online": 32,
+  "offline": 6,
+  "last_update": "2026-07-12T07:13:39.719849-03:00",
+  "panel_url": "https://monitoramentov3lan.github.io/tcm-ribamar/COMUNICAÇÕES_TCM-RIBAMAR.html",
+  "tgs_history": [
+    {
+      "data": "11/07/2026",
+      "count": 33,
+      "filename": "TGs_20260711.txt"
+    },
+    {
+      "data": "10/07/2026",
+      "count": 57,
+      "filename": "TGs_20260710.txt"
+    },
+    {
+      "data": "09/07/2026",
+      "count": 57,
+      "filename": "TGs_20260709.txt"
+    },
+    {
+      "data": "08/07/2026",
+      "count": 52,
+      "filename": "TGs_20260708.txt"
+    },
+    {
+      "data": "07/07/2026",
+      "count": 54,
+      "filename": "TGs_20260707.txt"
+    },
+    {
+      "data": "06/07/2026",
+      "count": 59,
+      "filename": "TGs_20260706.txt"
+    },
+    {
+      "data": "05/07/2026",
+      "count": 31,
+      "filename": "TGs_20260705.txt"
+    },
+    {
+      "data": "04/07/2026",
+      "count": 35,
+      "filename": "TGs_20260704.txt"
+    },
+    {
+      "data": "03/07/2026",
+      "count": 67,
+      "filename": "TGs_20260703.txt"
+    },
+    {
+      "data": "02/07/2026",
+      "count": 60,
+      "filename": "TGs_20260702.txt"
+    },
+    {
+      "data": "01/07/2026",
+      "count": 64,
+      "filename": "TGs_20260701.txt"
+    },
+    {
+      "data": "30/06/2026",
+      "count": 64,
+      "filename": "TGs_20260630.txt"
+    },
+    {
+      "data": "29/06/2026",
+      "count": 27,
+      "filename": "TGs_20260629.txt"
+    },
+    {
+      "data": "28/06/2026",
+      "count": 31,
+      "filename": "TGs_20260628.txt"
+    },
+    {
+      "data": "27/06/2026",
+      "count": 39,
+      "filename": "TGs_20260627.txt"
+    }
+  ]
 }
