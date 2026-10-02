@@ -1,13 +1,13 @@
 {
   "garagem": "TCM-RIBAMAR",
   "online": 38,
-  "offline": 8,
-  "last_update": "2026-10-01T22:35:31.032919-03:00",
+  "offline": 7,
+  "last_update": "2026-10-01T23:35:31.027700-03:00",
   "panel_url": "ERRO_PUBLICACAO",
   "tgs_history": [
     {
       "data": "01/10/2026",
-      "count": 49,
+      "count": 55,
       "filename": "TGs_TCM-RIBAMAR_20261001.txt"
     },
     {
