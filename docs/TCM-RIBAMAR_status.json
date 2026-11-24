@@ -2,7 +2,7 @@
   "garagem": "TCM-RIBAMAR",
   "online": 0,
   "offline": "ERRO",
-  "last_update": "2026-11-24T00:59:30.953244-03:00",
+  "last_update": "2026-11-24T01:29:31.000557-03:00",
   "panel_url": "N/A",
   "tgs_history": [],
   "antenas": [
@@ -10,7 +10,7 @@
       "nome": "antena1",
       "ip": "172.54.140.250",
       "status": "offline",
-      "ultimo_ping": "24/11/2026 00:59:27",
+      "ultimo_ping": "24/11/2026 01:29:24",
       "ultima_alteracao": "23/11/2026 23:59:35",
       "detalhes": "Inacessível: HTTPConnectionPool(host='172.54.140.250', port=80): Max retries exceeded with ur"
     }
